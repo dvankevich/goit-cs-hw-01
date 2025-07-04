@@ -70,6 +70,10 @@ class Lexer:
                 self.advance()
                 #print("TokenType.MUL")
                 return Token(TokenType.MUL, '*')
+            
+            if self.current_char == '/':
+                self.advance()
+                return Token(TokenType.DIV, '/')
 
             raise LexicalError('Помилка лексичного аналізу')
 
@@ -117,7 +121,7 @@ class Parser:
         """ Парсер для арифметичних виразів. """
         node = self.term()
 
-        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS, TokenType.MUL):
+        while self.current_token.type in (TokenType.PLUS, TokenType.MINUS, TokenType.MUL, TokenType.DIV):
             token = self.current_token
             if token.type == TokenType.PLUS:
                 self.eat(TokenType.PLUS)
@@ -125,6 +129,8 @@ class Parser:
                 self.eat(TokenType.MINUS)
             elif token.type == TokenType.MUL:
                 self.eat(TokenType.MUL)
+            elif token.type == TokenType.DIV:
+                self.eat(TokenType.DIV)
 
             node = BinOp(left=node, op=token, right=self.term())
 
@@ -156,6 +162,8 @@ class Interpreter:
         elif node.op.type == TokenType.MUL:
             #print(self.visit(node.left) , self.visit(node.right))
             return self.visit(node.left) * self.visit(node.right)
+        elif node.op.type == TokenType.DIV:
+            return self.visit(node.left) / self.visit(node.right)
 
     def visit_Num(self, node):
         return node.value
