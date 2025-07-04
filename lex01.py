@@ -10,6 +10,8 @@ class TokenType:
     MINUS = 'MINUS'
     MUL = 'MUL'
     DIV = 'DIV'
+    LPAREN = 'LPAREN'  # (
+    RPAREN = 'RPAREN'  # )
     EOF = 'EOF'  # Означає кінець вхідного рядка
 
 class Token:
@@ -74,6 +76,14 @@ class Lexer:
             if self.current_char == '/':
                 self.advance()
                 return Token(TokenType.DIV, '/')
+            
+            if self.current_char == '(':
+                self.advance()
+                return Token(TokenType.LPAREN, '(')
+
+            if self.current_char == ')':
+                self.advance()
+                return Token(TokenType.RPAREN, ')')
 
             raise LexicalError('Помилка лексичного аналізу')
 
@@ -110,12 +120,41 @@ class Parser:
             self.current_token = self.lexer.get_next_token()
         else:
             self.error()
+            
+    
+    def factor(self):
+        """ Парсер для factor """
+        token = self.current_token
+
+        if token.type == TokenType.INTEGER:
+            self.eat(TokenType.INTEGER)
+            return Num(token)
+
+        if token.type == TokenType.LPAREN:
+            self.eat(TokenType.LPAREN)
+            node = self.expr()
+            self.eat(TokenType.RPAREN)
+            return node
+
+        self.error()
 
     def term(self):
-        """ Парсер для 'term' правил граматики. У нашому випадку - це цілі числа."""
-        token = self.current_token
-        self.eat(TokenType.INTEGER)
-        return Num(token)
+        # token = self.current_token
+        # self.eat(TokenType.INTEGER)
+        # return Num(token)
+        """ Парсер для 'term' правил граматики. У нашому випадку це factors. """
+        node = self.factor()
+
+        while self.current_token.type in (TokenType.MUL, TokenType.DIV):
+            token = self.current_token
+            if token.type == TokenType.MUL:
+                self.eat(TokenType.MUL)
+            elif token.type == TokenType.DIV:
+                self.eat(TokenType.DIV)
+
+            node = BinOp(left=node, op=token, right=self.factor())
+
+        return node
 
     def expr(self):
         """ Парсер для арифметичних виразів. """
