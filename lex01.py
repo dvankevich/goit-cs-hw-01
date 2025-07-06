@@ -139,9 +139,6 @@ class Parser:
         self.error()
 
     def term(self):
-        # token = self.current_token
-        # self.eat(TokenType.INTEGER)
-        # return Num(token)
         """ Парсер для 'term' правил граматики. У нашому випадку це factors. """
         node = self.factor()
 
@@ -195,14 +192,13 @@ class Interpreter:
         elif node.op.type == TokenType.MINUS:
             return self.visit(node.left) - self.visit(node.right)
         elif node.op.type == TokenType.MUL:
-            #print(self.visit(node.left) , self.visit(node.right))
             return self.visit(node.left) * self.visit(node.right)
         elif node.op.type == TokenType.DIV:
             try:
                 return self.visit(node.left) / self.visit(node.right)
             except ZeroDivisionError:
                 print("Помилка: ділення на нуль!")
-                #return None 
+                return None 
 
     def visit_Num(self, node):
         return node.value
